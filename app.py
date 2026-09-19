@@ -1103,6 +1103,17 @@ if check_code:
         )
 
 
+        csv_data = history_display.to_csv(
+            index=False
+        ).encode("utf-8-sig")
+        
+        st.download_button(
+            label="📥 個別銘柄履歴CSVをダウンロード",
+            data=csv_data,
+            file_name=f"{check_code[:4]}_history.csv",
+            mime="text/csv",
+        )
+
 # =========================================================
 # 実行時間
 # =========================================================
