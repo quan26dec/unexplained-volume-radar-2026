@@ -987,6 +987,11 @@ if check_code:
         == check_code
     ].copy()
 
+    stock_history["吸収タイプ"] = (
+        stock_history["PriceChangePct"]
+        .apply(absorption_label)
+    )
+    
     if stock_history.empty:
 
         st.warning(
@@ -1013,12 +1018,17 @@ if check_code:
             [
                 "Date",
                 "C",
+                "PriceChangePct",
                 "Vo",
                 "Vol25",
                 "Vol75",
                 "InstantRatio",
                 "ShortRatio",
                 "MediumRatio",
+                "VolumeRatio",
+                "ValueRatio",
+                "AbsorptionScore",
+                "吸収タイプ",
             ]
         ].copy()
 
@@ -1028,7 +1038,7 @@ if check_code:
                 "Date",
                 ascending=False
             )
-            .head(30)
+            .head(90)
         )
 
         history_display = history_display.rename(
@@ -1038,10 +1048,13 @@ if check_code:
 
                 "C":
                     "終値",
+                
+                "PriceChangePct":
+                    "前日比(%)",
 
                 "Vo":
                     "出来高",
-
+                
                 "Vol25":
                     "25日平均出来高",
 
@@ -1056,17 +1069,31 @@ if check_code:
 
                 "MediumRatio":
                     "中期倍率",
+
+                "VolumeRatio":
+                    "出来高倍率",
+
+                "ValueRatio":
+                    "売買代金倍率",
+
+                "AbsorptionScore":
+                    "吸収Score",
+                
             }
         )
 
         history_display = history_display.round(
             {
                 "終値": 1,
+                "前日比(%)": 2,
                 "25日平均出来高": 0,
                 "75日平均出来高": 0,
                 "瞬間倍率": 2,
                 "短期倍率": 2,
                 "中期倍率": 2,
+                "出来高倍率": 2,
+                "売買代金倍率": 2,
+                "吸収Score": 2,
             }
         )
 
