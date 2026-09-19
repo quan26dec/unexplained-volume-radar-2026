@@ -467,6 +467,71 @@ bulk_all_df["MediumRatio"] = (
     / bulk_all_df["Vol75"]
 )
 
+# =========================================================
+# 吸収・大口資金判定
+# =========================================================
+
+# 当日の簡易売買代金
+bulk_all_df["TradingValue"] = (
+    bulk_all_df["C"]
+    * bulk_all_df["Vo"]
+)
+
+# 前日終値
+bulk_all_df["PrevClose"] = (
+    bulk_all_df
+    .groupby("Code")["C"]
+    .shift(1)
+)
+
+# 過去25日平均売買代金
+bulk_all_df["TradingValue25"] = (
+    bulk_all_df
+    .groupby("Code")["TradingValue"]
+    .transform(
+        lambda x:
+        x.shift(1)
+        .rolling(
+            25,
+            min_periods=25
+        )
+        .mean()
+    )
+)
+
+# 出来高倍率
+bulk_all_df["VolumeRatio"] = (
+    bulk_all_df["Vo"]
+    / bulk_all_df["Vol25"]
+)
+
+# 売買代金倍率
+bulk_all_df["ValueRatio"] = (
+    bulk_all_df["TradingValue"]
+    / bulk_all_df["TradingValue25"]
+)
+
+# 前日比の絶対値
+bulk_all_df["PriceMove"] = (
+    (
+        bulk_all_df["C"]
+        / bulk_all_df["PrevClose"]
+        - 1
+    )
+    .abs()
+)
+
+# 吸収スコア
+bulk_all_df["AbsorptionScore"] = (
+    (
+        0.5 * bulk_all_df["VolumeRatio"]
+        + 0.5 * bulk_all_df["ValueRatio"]
+    )
+    / (
+        bulk_all_df["PriceMove"]
+        + 0.02
+    )
+)
 
 # =========================================================
 # 平均売買代金
@@ -548,6 +613,13 @@ radar_df = latest_df[
         "ShortRatio",
         "MediumRatio",
         "AvgTradingValue20",
+
+        "TradingValue",
+        "TradingValue25",
+        "VolumeRatio",
+        "ValueRatio",
+        "PriceMove",
+        "AbsorptionScore",
     ]
 ].copy()
 
@@ -591,7 +663,29 @@ radar_df = radar_df.rename(
 
         "AvgTradingValue20":
             "20日平均売買代金(億円)",
+
+        "TradingValue":
+            "当日売買代金",
+
+        "TradingValue25":
+            "25日平均売買代金",
+        
+        "VolumeRatio":
+            "出来高倍率",
+        
+        "ValueRatio":
+            "売買代金倍率",
+        
+        "PriceMove":
+            "株価変動率",
+        
+        "AbsorptionScore":
+            "吸収Score",
     }
+)
+
+radar_df["株価変動率"] = (
+    radar_df["株価変動率"] * 100
 )
 
 radar_df = radar_df.round(
@@ -603,6 +697,11 @@ radar_df = radar_df.round(
         "短期倍率": 2,
         "中期倍率": 2,
         "20日平均売買代金(億円)": 2,
+
+        "出来高倍率": 2,
+        "売買代金倍率": 2,
+        "株価変動率": 2,
+        "吸収Score": 2,        
     }
 )
 
@@ -772,6 +871,57 @@ st.dataframe(
     use_container_width=True,
 )
 
+# =========================================================
+# 吸収・大口資金ランキング
+# =========================================================
+
+st.subheader(
+    "🛸 5. 吸収・大口資金ランキング"
+)
+
+st.caption(
+    "出来高・売買代金が増えているのに、"
+    "株価が大きく動いていない銘柄を観測します。"
+)
+
+absorption_df = radar_df[
+    (radar_df["出来高倍率"] >= 2.0)
+    &
+    (radar_df["売買代金倍率"] >= 2.0)
+    &
+    (radar_df["株価変動率"] <= 5.0)
+].copy()
+
+absorption_df = (
+    absorption_df
+    .sort_values(
+        "吸収Score",
+        ascending=False
+    )
+    .head(display_count)
+    .reset_index(drop=True)
+)
+
+absorption_df.index = (
+    absorption_df.index + 1
+)
+
+st.dataframe(
+    absorption_df[
+        [
+            "銘柄コード",
+            "銘柄名",
+            "終値",
+            "最新出来高",
+            "出来高倍率",
+            "売買代金倍率",
+            "株価変動率",
+            "20日平均売買代金(億円)",
+            "吸収Score",
+        ]
+    ],
+    use_container_width=True,
+)
 
 # =========================================================
 # 個別銘柄確認
