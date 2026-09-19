@@ -529,7 +529,7 @@ bulk_all_df["AbsorptionScore"] = (
     )
     / (
         bulk_all_df["PriceMove"]
-        + 0.02
+        + 0.03
     )
 )
 
