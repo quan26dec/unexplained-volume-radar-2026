@@ -511,6 +511,16 @@ bulk_all_df["ValueRatio"] = (
     / bulk_all_df["TradingValue25"]
 )
 
+# 前日比（符号あり）
+bulk_all_df["PriceChangePct"] = (
+    (
+        bulk_all_df["C"]
+        / bulk_all_df["PrevClose"]
+        - 1
+    )
+    * 100
+)
+
 # 前日比の絶対値
 bulk_all_df["PriceMove"] = (
     (
@@ -544,7 +554,6 @@ bulk_all_df["AvgTradingValue20"] = (
     * bulk_all_df["Vol20"]
 )
 
-
 # =========================================================
 # 最新日抽出
 # =========================================================
@@ -568,7 +577,6 @@ latest_df = latest_df.dropna(
         "MediumRatio",
     ]
 )
-
 
 # =========================================================
 # 銘柄名追加
@@ -618,6 +626,7 @@ radar_df = latest_df[
         "TradingValue25",
         "VolumeRatio",
         "ValueRatio",
+        "PriceChangePct",
         "PriceMove",
         "AbsorptionScore",
     ]
@@ -676,6 +685,9 @@ radar_df = radar_df.rename(
         "ValueRatio":
             "売買代金倍率",
         
+        "PriceChangePct":
+            "前日比(%)",
+        
         "PriceMove":
             "株価変動率",
         
@@ -686,6 +698,24 @@ radar_df = radar_df.rename(
 
 radar_df["株価変動率"] = (
     radar_df["株価変動率"] * 100
+)
+
+def absorption_label(x):
+    if -0.20 <= x <= 0.20:
+        return "横ばい吸収"
+    elif 0.20 < x <= 1.00:
+        return "小幅高吸収"
+    elif -1.00 <= x < -0.20:
+        return "小幅安吸収"
+    elif x > 1.00:
+        return "上昇伴う大商い"
+    else:
+        return "下落伴う大商い"
+
+
+radar_df["吸収タイプ"] = (
+    radar_df["前日比(%)"]
+    .apply(absorption_label)
 )
 
 radar_df = radar_df.round(
@@ -700,6 +730,7 @@ radar_df = radar_df.round(
 
         "出来高倍率": 2,
         "売買代金倍率": 2,
+        "前日比(%)": 2,
         "株価変動率": 2,
         "吸収Score": 2,        
     }
@@ -912,6 +943,8 @@ st.dataframe(
             "銘柄コード",
             "銘柄名",
             "終値",
+            "前日比(%)",
+            "吸収タイプ",
             "最新出来高",
             "出来高倍率",
             "売買代金倍率",
