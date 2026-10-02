@@ -479,14 +479,14 @@ bulk_all_df["MediumRatio"] = (
 
 # 当日の簡易売買代金
 bulk_all_df["TradingValue"] = (
-    bulk_all_df["AdjC"]
+    bulk_all_df["C"]
     * bulk_all_df["AdjVo"]
 )
 
 # 調整済み前日終値
 bulk_all_df["PrevClose"] = (
     bulk_all_df
-    .groupby("Code")["AdjC"]
+    .groupby("Code")["C"]
     .shift(1)
 )
 
@@ -522,7 +522,7 @@ bulk_all_df["ValueRatio"] = (
 # 前日比（符号あり）
 bulk_all_df["PriceChangePct"] = (
     (
-        bulk_all_df["AdjC"]
+        bulk_all_df["C"]
         / bulk_all_df["PrevClose"]
         - 1
     )
@@ -532,7 +532,7 @@ bulk_all_df["PriceChangePct"] = (
 # 前日比の絶対値
 bulk_all_df["PriceMove"] = (
     (
-        bulk_all_df["AdjC"]
+        bulk_all_df["C"]
         / bulk_all_df["PrevClose"]
         - 1
     )
@@ -559,7 +559,7 @@ bulk_all_df["AbsorptionScore"] = (
 # 調整済み価格 × 調整済み20日平均出来高
 
 bulk_all_df["AvgTradingValue20"] = (
-    bulk_all_df["AdjC"]
+    bulk_all_df["C"]
     * bulk_all_df["Vol20"]
 )
 
