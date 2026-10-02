@@ -333,7 +333,6 @@ bulk_all_df["Date"] = pd.to_datetime(
 )
 
 # ② 価格・出来高を数値化
-# 生データと分割調整済みデータの両方を保持
 
 bulk_all_df["C"] = pd.to_numeric(
     bulk_all_df["C"],
@@ -345,24 +344,12 @@ bulk_all_df["Vo"] = pd.to_numeric(
     errors="coerce",
 )
 
-bulk_all_df["AdjC"] = pd.to_numeric(
-    bulk_all_df["AdjC"],
-    errors="coerce",
-)
-
-bulk_all_df["AdjVo"] = pd.to_numeric(
-    bulk_all_df["AdjVo"],
-    errors="coerce",
-)
-
 bulk_all_df = bulk_all_df.dropna(
     subset=[
         "Code",
         "Date",
         "C",
         "Vo",
-        "AdjC",
-        "AdjVo",
     ]
 )
 
