@@ -277,11 +277,9 @@ for i, bulk_item in enumerate(bulk_target_files):
                 "Code",
                 "C",
                 "Vo",
+                "AdjC",
+                "AdjVo",
             ],
-            dtype={
-                "Code": str
-            },
-        )
 
         bulk_dfs.append(item_df)
 
@@ -335,6 +333,9 @@ bulk_all_df["Date"] = pd.to_datetime(
     errors="coerce",
 )
 
+# ② 価格・出来高を数値化
+# 生データと分割調整済みデータの両方を保持
+
 bulk_all_df["C"] = pd.to_numeric(
     bulk_all_df["C"],
     errors="coerce",
@@ -345,12 +346,24 @@ bulk_all_df["Vo"] = pd.to_numeric(
     errors="coerce",
 )
 
+bulk_all_df["AdjC"] = pd.to_numeric(
+    bulk_all_df["AdjC"],
+    errors="coerce",
+)
+
+bulk_all_df["AdjVo"] = pd.to_numeric(
+    bulk_all_df["AdjVo"],
+    errors="coerce",
+)
+
 bulk_all_df = bulk_all_df.dropna(
     subset=[
         "Code",
         "Date",
         "C",
         "Vo",
+        "AdjC",
+        "AdjVo",
     ]
 )
 
@@ -380,9 +393,11 @@ bulk_all_df = bulk_all_df.sort_values(
 
 st.write("🧮 出来高異常計算中...")
 
+# ③ 株式分割調整済み出来高を基準に平均出来高を計算
+
 volume_group = bulk_all_df.groupby(
     "Code"
-)["Vo"]
+)["AdjVo"]
 
 bulk_all_df["Vol5"] = (
     volume_group.transform(
@@ -449,9 +464,11 @@ bulk_all_df["Vol75"] = (
 # 3種類の出来高倍率
 # =========================================================
 
-# 今日だけ突然おかしいか
+# ④ 今日だけ突然おかしいか
+# 分割調整済み出来高 ÷ 過去25日平均調整済み出来高
+
 bulk_all_df["InstantRatio"] = (
-    bulk_all_df["Vo"]
+    bulk_all_df["AdjVo"]
     / bulk_all_df["Vol25"]
 )
 
@@ -471,16 +488,19 @@ bulk_all_df["MediumRatio"] = (
 # 吸収・大口資金判定
 # =========================================================
 
+# ⑤ 分割調整済みデータで
+# 売買代金・出来高倍率を計算
+
 # 当日の簡易売買代金
 bulk_all_df["TradingValue"] = (
-    bulk_all_df["C"]
-    * bulk_all_df["Vo"]
+    bulk_all_df["AdjC"]
+    * bulk_all_df["AdjVo"]
 )
 
-# 前日終値
+# 調整済み前日終値
 bulk_all_df["PrevClose"] = (
     bulk_all_df
-    .groupby("Code")["C"]
+    .groupby("Code")["AdjC"]
     .shift(1)
 )
 
@@ -501,7 +521,7 @@ bulk_all_df["TradingValue25"] = (
 
 # 出来高倍率
 bulk_all_df["VolumeRatio"] = (
-    bulk_all_df["Vo"]
+    bulk_all_df["AdjVo"]
     / bulk_all_df["Vol25"]
 )
 
@@ -511,10 +531,12 @@ bulk_all_df["ValueRatio"] = (
     / bulk_all_df["TradingValue25"]
 )
 
+# ⑦ 分割調整済み価格で前日比を計算
+
 # 前日比（符号あり）
 bulk_all_df["PriceChangePct"] = (
     (
-        bulk_all_df["C"]
+        bulk_all_df["AdjC"]
         / bulk_all_df["PrevClose"]
         - 1
     )
@@ -524,7 +546,7 @@ bulk_all_df["PriceChangePct"] = (
 # 前日比の絶対値
 bulk_all_df["PriceMove"] = (
     (
-        bulk_all_df["C"]
+        bulk_all_df["AdjC"]
         / bulk_all_df["PrevClose"]
         - 1
     )
@@ -547,10 +569,11 @@ bulk_all_df["AbsorptionScore"] = (
 # 平均売買代金
 # =========================================================
 
-# Ver.1では簡易的に
-# 終値 × 20日平均出来高
+# ⑥ 20日平均売買代金
+# 調整済み価格 × 調整済み20日平均出来高
+
 bulk_all_df["AvgTradingValue20"] = (
-    bulk_all_df["C"]
+    bulk_all_df["AdjC"]
     * bulk_all_df["Vol20"]
 )
 
