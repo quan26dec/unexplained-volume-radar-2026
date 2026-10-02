@@ -383,7 +383,7 @@ st.write("🧮 出来高異常計算中...")
 
 volume_group = bulk_all_df.groupby(
     "Code"
-)["AdjVo"]
+)["Vo"]
 
 bulk_all_df["Vol5"] = (
     volume_group.transform(
