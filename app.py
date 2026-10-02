@@ -277,8 +277,6 @@ for i, bulk_item in enumerate(bulk_target_files):
                 "Code",
                 "C",
                 "Vo",
-                "AdjC",
-                "AdjVo",
             ],
         )
             
