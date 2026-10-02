@@ -480,7 +480,7 @@ bulk_all_df["MediumRatio"] = (
 # 当日の簡易売買代金
 bulk_all_df["TradingValue"] = (
     bulk_all_df["C"]
-    * bulk_all_df["AdjVo"]
+    * bulk_all_df["Vo"]
 )
 
 # 調整済み前日終値
@@ -507,7 +507,7 @@ bulk_all_df["TradingValue25"] = (
 
 # 出来高倍率
 bulk_all_df["VolumeRatio"] = (
-    bulk_all_df["AdjVo"]
+    bulk_all_df["Vo"]
     / bulk_all_df["Vol25"]
 )
 
