@@ -454,7 +454,7 @@ bulk_all_df["Vol75"] = (
 # 分割調整済み出来高 ÷ 過去25日平均調整済み出来高
 
 bulk_all_df["InstantRatio"] = (
-    bulk_all_df["AdjVo"]
+    bulk_all_df["Vo"]
     / bulk_all_df["Vol25"]
 )
 
