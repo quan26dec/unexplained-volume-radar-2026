@@ -620,6 +620,7 @@ latest_df = latest_df[
 
 radar_df = latest_df[
     [
+        "Date",
         "Code",
         "CoName",
         "C",
@@ -652,6 +653,9 @@ radar_df[
 
 radar_df = radar_df.rename(
     columns={
+        "Date":
+            "取引日",
+        
         "Code":
             "銘柄コード",
 
@@ -703,6 +707,11 @@ radar_df = radar_df.rename(
         "AbsorptionScore":
             "吸収Score",
     }
+)
+
+radar_df["取引日"] = (
+    pd.to_datetime(radar_df["取引日"])
+    .dt.strftime("%Y-%m-%d")
 )
 
 radar_df["株価変動率"] = (
@@ -949,6 +958,7 @@ absorption_df.index = (
 st.dataframe(
     absorption_df[
         [
+            "取引日",
             "銘柄コード",
             "銘柄名",
             "終値",
