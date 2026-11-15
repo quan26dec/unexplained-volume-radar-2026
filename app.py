@@ -976,6 +976,26 @@ st.dataframe(
 )
 
 # =========================================================
+# 6. 瞬間出来高1.5倍以上・全件CSV
+# =========================================================
+
+st.subheader("📥 6. 瞬間出来高1.5倍以上・全件")
+
+# 表示用に丸める前の倍率で1.5倍以上を判定
+instant_all_df = (
+    radar_df.loc[latest_df["InstantRatio"].ge(1.5)]
+    .sort_values("瞬間倍率", ascending=False)
+)
+
+st.download_button(
+    label=f"⑥ 瞬間出来高1.5倍以上・全件CSV（{len(instant_all_df):,}件）",
+    data=instant_all_df.to_csv(index=False).encode("utf-8-sig"),
+    file_name=f"06_瞬間出来高1.5倍以上_全件_{latest_date:%Y-%m-%d}.csv",
+    mime="text/csv",
+    key="download_instant_volume_all",
+)
+
+# =========================================================
 # 個別銘柄確認
 # =========================================================
 
